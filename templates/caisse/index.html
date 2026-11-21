@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AE - Caisse</title>
+    <link rel="stylesheet" href="{% static 'css/caisse.css' %}">
+</head>
+<body>
+
+<div class="app">
+
+    <!-- ================= BARRE DU HAUT ================= -->
+    <header class="topbar">
+        <div class="brand">AE</div>
+        <div class="scan-wrap">
+            <input type="text" id="scan-input" placeholder="Scanner un code-barres ou rechercher…  (3*code pour une quantité)" autocomplete="off" autofocus>
+            <span class="scan-hint">F2</span>
+        </div>
+        <div class="top-info">
+            <div><span id="info-caisse">Caisse 01</span> · <span id="info-caissier">Caissier</span></div>
+            <div id="datetime">--</div>
+        </div>
+    </header>
+
+    <div class="body">
+
+        <!-- ================= BANDEAU ARTICLE ================= -->
+        <section class="infobar">
+            <div class="disp disp-lib"><small>Article</small><b id="disp-lib">Libellé de l'article</b></div>
+            <div class="disp"><small>Qté</small><b id="disp-qte">0</b></div>
+            <div class="disp"><small>P.U</small><b id="disp-pu">0.00</b></div>
+            <div class="disp"><small>Total</small><b id="disp-total">0.00</b></div>
+            <div class="disp disp-net"><small>Net à payer</small><b id="disp-net">0.00 DH</b></div>
+        </section>
+
+        <!-- ================= TICKET ================= -->
+        <section class="ticket-col">
+            <div class="ticket-head">
+                <span>Ticket <b id="ticket-number">#0001</b></span>
+                <span id="ticket-client" class="ticket-client"></span>
+            </div>
+            <div class="ticket-list" id="ticket-list"></div>
+            <div class="ticket-foot">
+                <div class="tf-line"><span>Articles</span><span id="nb-articles">0</span></div>
+                <div class="tf-line"><span>Sous-total</span><span id="subtotal">0.00 DH</span></div>
+                <div class="tf-line tf-discount" id="discount-line" hidden><span>Remise <small id="discount-label"></small></span><span id="discount-amount">-0.00 DH</span></div>
+                <div class="tf-line tf-total"><span>TOTAL</span><span id="total-price">0.00 DH</span></div>
+            </div>
+        </section>
+
+        <!-- ================= PANNEAU CATÉGORIES + PAVÉ ================= -->
+        <section class="mid-col">
+            <div class="products-panel">
+                <!-- Grille des catégories (tuiles carrées) -->
+                <div class="panel-grid" id="panel-grid"></div>
+            </div>
+
+            <div class="numpad-box">
+                <div class="numpad-display"><small>Quantité</small><span id="numpad-display">0</span></div>
+                <div class="numpad-grid">
+                    <button data-key="7">7</button>
+                    <button data-key="8">8</button>
+                    <button data-key="9">9</button>
+                    <button data-key="C" class="np-action">Clear</button>
+
+                    <button data-key="4">4</button>
+                    <button data-key="5">5</button>
+                    <button data-key="6">6</button>
+                    <button data-key="Del" class="np-action">Suppr. ligne</button>
+
+                    <button data-key="1">1</button>
+                    <button data-key="2">2</button>
+                    <button data-key="3">3</button>
+                    <button data-key="Enter" class="np-enter">OK</button>
+
+                    <button data-key="0">0</button>
+                    <button data-key="00">00</button>
+                    <button data-key=".">.</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= COLONNE DROITE : FONCTIONS OU PRODUITS ================= -->
+        <section class="fn-col mode-functions" id="fn-col">
+
+            <!-- Vue 1 : boutons fonction (par défaut) -->
+            <div class="fn-grid" id="fn-grid"></div>
+
+            <!-- Vue 2 : produits de la catégorie sélectionnée -->
+            <div class="fn-products" id="fn-products">
+                <div class="fn-products-head">
+                    <button class="fn-back" id="fn-back">← Retour</button>
+                    <span id="fn-cat-title"></span>
+                </div>
+                <div class="fn-products-grid" id="fn-products-grid"></div>
+            </div>
+
+        </section>
+
+    </div>
+</div>
+
+<!-- ================= ÉCRAN VERROUILLÉ (DÉPART) ================= -->
+<div class="lock" id="lock-screen" hidden>
+    <div class="lock-card">
+        <div class="brand big">AE</div>
+        <h2>Session fermée</h2>
+        <p>Saisissez le nom du caissier pour ouvrir la session.</p>
+        <input type="text" id="lock-name" class="f-input" placeholder="Nom du caissier">
+        <button class="btn-confirm lock-btn" id="lock-open">Ouvrir la session</button>
+    </div>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast-container"></div>
+
+<script src="{% static 'js/caisse.js' %}"></script>
+</body>
+</html>

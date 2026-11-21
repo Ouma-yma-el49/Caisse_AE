@@ -1,0 +1,18 @@
+# Environnements virtuels
+env/
+venv/
+.venv/
+
+# Base de données locale
+db.sqlite3
+
+# Fichiers Python
+__pycache__/
+*.pyc
+
+# Fichiers statiques collectés (ils seront générés sur PythonAnywhere)
+staticfiles/
+
+# Fichiers système / IDE
+.DS_Store
+.vscode/
