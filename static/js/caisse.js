@@ -1105,6 +1105,106 @@ function tick() {
 }
 setInterval(tick, 1000);
 
+// ==========================================
+// REDIMENSIONNEMENT DES COLONNES (DRAG & DROP)
+// ==========================================
+(function initResizers() {
+    const layoutBody = document.getElementById('main-layout');
+    const resizer1 = document.getElementById('resizer-1');
+    const resizer2 = document.getElementById('resizer-2');
+
+    if (!layoutBody || !resizer1 || !resizer2) {
+        console.warn('Resizers: éléments introuvables');
+        return;
+    }
+    console.log('Resizers: initialisés ✅');
+
+    // Restaurer les tailles sauvegardées
+    const savedTicketW = localStorage.getItem('caisse_ticket_w');
+    const savedMidW = localStorage.getItem('caisse_mid_w');
+    if (savedTicketW) layoutBody.style.setProperty('--ticket-w', savedTicketW);
+    if (savedMidW) layoutBody.style.setProperty('--mid-w', savedMidW);
+
+    let isDragging1 = false;
+    let isDragging2 = false;
+    let startX = 0;
+    let startWidth1 = 0;
+    let startWidth2 = 0;
+
+    // Démarrer le drag
+    function startDrag1(e) {
+        e.preventDefault();
+        isDragging1 = true;
+        startX = e.clientX;
+        startWidth1 = document.querySelector('.ticket-col').getBoundingClientRect().width;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        console.log('Drag 1 start:', startWidth1);
+    }
+    function startDrag2(e) {
+        e.preventDefault();
+        isDragging2 = true;
+        startX = e.clientX;
+        startWidth2 = document.querySelector('.mid-col').getBoundingClientRect().width;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        console.log('Drag 2 start:', startWidth2);
+    }
+
+    resizer1.addEventListener('mousedown', startDrag1);
+    resizer2.addEventListener('mousedown', startDrag2);
+    resizer1.addEventListener('touchstart', startDrag1, { passive: false });
+    resizer2.addEventListener('touchstart', startDrag2, { passive: false });
+
+    // Pendant le glissement
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging1) {
+            const dx = e.clientX - startX;
+            const newWidth = Math.max(220, Math.min(window.innerWidth * 0.5, startWidth1 + dx));
+            layoutBody.style.setProperty('--ticket-w', newWidth + 'px');
+        }
+        if (isDragging2) {
+            const dx = e.clientX - startX;
+            const newWidth = Math.max(280, Math.min(window.innerWidth * 0.6, startWidth2 + dx));
+            layoutBody.style.setProperty('--mid-w', newWidth + 'px');
+        }
+    });
+
+    document.addEventListener('touchmove', (e) => {
+        if (isDragging1 || isDragging2) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            if (isDragging1) {
+                const dx = touch.clientX - startX;
+                const newWidth = Math.max(220, Math.min(window.innerWidth * 0.5, startWidth1 + dx));
+                layoutBody.style.setProperty('--ticket-w', newWidth + 'px');
+            }
+            if (isDragging2) {
+                const dx = touch.clientX - startX;
+                const newWidth = Math.max(280, Math.min(window.innerWidth * 0.6, startWidth2 + dx));
+                layoutBody.style.setProperty('--mid-w', newWidth + 'px');
+            }
+        }
+    }, { passive: false });
+
+    // Relâcher (sauvegarde)
+    function endDrag() {
+        if (isDragging1) {
+            localStorage.setItem('caisse_ticket_w', layoutBody.style.getPropertyValue('--ticket-w'));
+        }
+        if (isDragging2) {
+            localStorage.setItem('caisse_mid_w', layoutBody.style.getPropertyValue('--mid-w'));
+        }
+        isDragging1 = false;
+        isDragging2 = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+    }
+
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchend', endDrag);
+})();
+
 /* ================= INIT ================= */
 async function init() {
     STORE.caissier = session.cashier || STORE.caissier;
