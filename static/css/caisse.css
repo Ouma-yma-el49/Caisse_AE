@@ -72,12 +72,13 @@ button:disabled { cursor: not-allowed; }
 .disp-net small { color: #94a3b8; }
 .disp-net b { font-size: 22px; color: var(--teal); }
 
-/* ================= CORPS (GRID) ================= */
+/* ================= CORPS (GRID) AVEC REDIMENSIONNEMENT ================= */
 .body {
     display: grid;
-    grid-template-columns: 340px 460px 1fr;
+    /* On utilise des variables CSS pour les largeurs dynamiques */
+    grid-template-columns: var(--ticket-w, 340px) 12px var(--mid-w, 460px) 12px 1fr;
     grid-template-rows: auto 1fr;
-    gap: 12px;
+    gap: 6px;
     padding: 12px;
     flex: 1;
     min-height: 0;
@@ -85,10 +86,37 @@ button:disabled { cursor: not-allowed; }
 }
 
 /* Placement explicite des zones */
-.ticket-col { grid-column: 1; grid-row: 1 / span 2; width: auto; }
-.infobar    { grid-column: 2 / span 2; grid-row: 1; }
-.mid-col    { grid-column: 2; grid-row: 2; width: auto; }
-.fn-col     { grid-column: 3; grid-row: 2; width: auto; }
+.ticket-col { grid-column: 1; grid-row: 1 / span 2; width: auto; min-width: 0; }
+.infobar    { grid-column: 3 / span 3; grid-row: 1; }
+.mid-col    { grid-column: 3; grid-row: 2; width: auto; min-width: 0; }
+.fn-col     { grid-column: 5; grid-row: 2; width: auto; min-width: 0; }
+
+/* POIGNÉES DE REDIMENSIONNEMENT */
+.resizer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: col-resize;
+    position: relative;
+    z-index: 10;
+    touch-action: none;
+}
+#resizer-1 { grid-column: 2; grid-row: 1 / span 2; }
+#resizer-2 { grid-column: 4; grid-row: 2; }
+
+/* Le trait visuel */
+.resizer::after {
+    content: '';
+    width: 4px;
+    height: 40px;
+    background: var(--border);
+    border-radius: 4px;
+    transition: background 0.2s, height 0.2s;
+}
+.resizer:hover::after, .resizer:active::after {
+    background: var(--blue);
+    height: 100%;
+}
 
 /* TICKET */
 .ticket-col { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 0; }
@@ -278,12 +306,17 @@ button:disabled { cursor: not-allowed; }
 }
 
 /* =========================================================
-   RESPONSIVE (Ordre décroissant de taille)
+   RESPONSIVE (Avec adaptation pour les poignées)
    ========================================================= */
 
 /* Tablette paysage / petit laptop */
 @media (max-width: 1100px) {
-    .body { grid-template-columns: 240px 1fr 1fr; gap: 8px; padding: 8px; }
+    .body { 
+        grid-template-columns: var(--ticket-w, 240px) 8px var(--mid-w, 320px) 8px 1fr; 
+        gap: 4px; 
+        padding: 8px; 
+    }
+    .resizer::after { width: 3px; }
     .mid-col { gap: 8px; }
     .numpad-box { height: 260px; }
     .numpad-grid { gap: 5px; padding: 6px; }
@@ -302,6 +335,9 @@ button:disabled { cursor: not-allowed; }
 
 /* Tablette portrait */
 @media (max-width: 900px) {
+    /* On cache les poignées sur tablette portrait (pas pratique au doigt) */
+    .resizer { display: none; }
+    
     .body {
         grid-template-columns: 42% 1fr;
         grid-template-rows: auto 1fr 1fr;
@@ -324,6 +360,7 @@ button:disabled { cursor: not-allowed; }
 
 /* Téléphone */
 @media (max-width: 640px) {
+    .resizer { display: none; }
     html { height: auto; }
     body { height: auto; min-height: 100vh; overflow: auto; }
     .app  { height: auto; min-height: 100vh; }
@@ -347,8 +384,9 @@ button:disabled { cursor: not-allowed; }
         display: flex; flex-direction: column;
         height: auto; flex: none; min-height: 0;
         padding: 6px; gap: 8px;
+        grid-template-columns: none; /* Annule la grille */
     }
-    .ticket-col, .mid-col, .fn-col, .infobar { width: auto; }
+    .ticket-col, .mid-col, .fn-col, .infobar { width: auto; grid-column: auto; grid-row: auto; }
     
     .ticket-col   { min-height: 240px; max-height: 42vh; }
     .ticket-head  { padding: 8px 12px; font-size: 12px; }
