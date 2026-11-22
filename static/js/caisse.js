@@ -51,7 +51,6 @@ const CAT_EMOJI = {
 
 /* ================= CATALOGUE (prix TTC en DH) ================= */
 const CATALOG = [
-
     /* ============ 🥤 BOISSONS ============ */
     { code: '6111000000011', nom: 'Coca-Cola 1L',               prix: 9.50,  categorie: 'Boissons', tva: 20, stock: 48,  emoji: '🥤' },
     { code: '6111000000028', nom: 'Coca-Cola 33cl',             prix: 4.50,  categorie: 'Boissons', tva: 20, stock: 72,  emoji: '🥤' },
@@ -166,12 +165,11 @@ const CATALOG = [
     { code: '6111000001431', nom: 'Lait infantile Guigoz 400g', prix: 95.00, categorie: 'Bébé', tva: 7,  stock: 12, emoji: '🍼' },
     { code: '6111000001448', nom: 'Lingettes bébé x72',         prix: 22.00, categorie: 'Bébé', tva: 20, stock: 30, emoji: '🧻' },
     { code: '6111000001455', nom: 'Petit pot bébé 130g',        prix: 12.00, categorie: 'Bébé', tva: 7,  stock: 25, emoji: '🍲' }
-
 ];
 
 /* ================= API (MOCK -> à brancher sur Django) ================= */
 const API = {
-    getProduits: async () => CATALOG.map(p => ({ ...p })),   // fetch('/api/produits/')
+    getProduits: async () => CATALOG.map(p => ({ ...p })),
     validerVente: async (payload) => { console.log('POST /api/ventes/', payload); return { ok: true }; }
 };
 
@@ -252,7 +250,6 @@ function modal({ title = '', body = '', width = 460, cls = '', buttons = [{ labe
     return ctx;
 }
 
-/* Formulaire simple : renvoie un objet {id: valeur} ou null si annulé */
 function ask({ title, fields, ok = 'Valider', width = 420 }) {
     return new Promise(resolve => {
         const body = fields.map(f => `<label class="f-label" for="fld-${f.id}">${esc(f.label)}</label>
@@ -340,7 +337,7 @@ function renderDisplay() {
 }
 
 /* ---------- Panneau central : catégories + produits filtrés ---------- */
-let currentCategory = null;   // catégorie ouverte dans la colonne de droite (ou null)
+let currentCategory = null;
 
 function renderProductPanel() {
     const grid = $('panel-grid');
@@ -348,7 +345,6 @@ function renderProductPanel() {
 
     const q = els.scan.value.replace(/^\d+\*/, '').trim().toLowerCase();
 
-    // 1) Recherche → afficher les produits filtrés
     if (q) {
         const list = state.products.filter(p =>
             p.nom.toLowerCase().includes(q) || p.code.includes(q));
@@ -361,7 +357,6 @@ function renderProductPanel() {
         return;
     }
 
-    // 2) Sinon → afficher les CATÉGORIES
     grid.innerHTML = '';
     if (!state.products.length) {
         grid.innerHTML = '<div class="empty">Chargement…</div>';
@@ -381,7 +376,6 @@ function renderProductPanel() {
     });
 }
 
-/* Fabrique une tuile produit (réutilisée dans panel et fn-products) */
 function makeProductTile(p) {
     const left = stockOf(p) - inCart(p.code);
     const qty  = inCart(p.code);
@@ -398,7 +392,6 @@ function makeProductTile(p) {
     return b;
 }
 
-/* Ouvre une catégorie dans la colonne de droite */
 function openCategoryInFn(cat) {
     currentCategory = cat;
     const fnCol = $('fn-col');
@@ -408,7 +401,6 @@ function openCategoryInFn(cat) {
     renderCategoryProducts();
 }
 
-/* Retour aux fonctions */
 function closeFnProducts() {
     currentCategory = null;
     const fnCol = $('fn-col');
@@ -418,7 +410,6 @@ function closeFnProducts() {
     $('fn-cat-title').textContent = '';
 }
 
-/* (Re)peuple la grille des produits d'une catégorie */
 function renderCategoryProducts() {
     if (!currentCategory) return;
     const grid = $('fn-products-grid');
@@ -1086,133 +1077,138 @@ function buildFnGrid() {
     });
 }
 
-/* ================= RACCOURCIS & HORLOGE ================= */
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        const mods = $('modal-root').children;
-        if (mods.length) { mods[mods.length - 1]._ctx.close(); return; }
-        if (currentCategory) { closeFnProducts(); return; }
-        return;
-    }
-    if (!$('lock-screen').hidden) return;
-    const map = { F2: () => { els.scan.focus(); els.scan.select(); }, F4: () => openCatalog(), F6: openDiscount, F9: holdTicket, F12: () => { if (!anyModalOpen()) openPayment(); } };
-    if (map[e.key]) { e.preventDefault(); if (e.key === 'F2' || !anyModalOpen()) map[e.key](); }
-});
+/* ================= REDIMENSIONNEMENT (DRAG & DROP) ================= */
+function initResizers() {
+    const layoutBody = $('main-layout');
+    const resizer1 = $('resizer-1'); // Vertical Ticket
+    const resizer2 = $('resizer-2'); // Vertical Milieu
+    const resizerH = $('resizer-h'); // Horizontal Pavé
 
-function tick() {
-    const n = new Date();
-    $('datetime').textContent = n.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + ', ' + n.toLocaleTimeString('fr-FR');
-}
-setInterval(tick, 1000);
-
-// ==========================================
-// REDIMENSIONNEMENT DES COLONNES (DRAG & DROP)
-// ==========================================
-(function initResizers() {
-    const layoutBody = document.getElementById('main-layout');
-    const resizer1 = document.getElementById('resizer-1');
-    const resizer2 = document.getElementById('resizer-2');
-
-    if (!layoutBody || !resizer1 || !resizer2) {
-        console.warn('Resizers: éléments introuvables');
-        return;
-    }
-    console.log('Resizers: initialisés ✅');
+    if (!layoutBody) return;
 
     // Restaurer les tailles sauvegardées
     const savedTicketW = localStorage.getItem('caisse_ticket_w');
     const savedMidW = localStorage.getItem('caisse_mid_w');
+    const savedNumpadH = localStorage.getItem('caisse_numpad_h');
     if (savedTicketW) layoutBody.style.setProperty('--ticket-w', savedTicketW);
     if (savedMidW) layoutBody.style.setProperty('--mid-w', savedMidW);
+    if (savedNumpadH) layoutBody.style.setProperty('--numpad-h', savedNumpadH);
 
-    let isDragging1 = false;
-    let isDragging2 = false;
-    let startX = 0;
-    let startWidth1 = 0;
-    let startWidth2 = 0;
+    let isDragging1 = false, isDragging2 = false, isDraggingH = false;
+    let startX = 0, startWidth1 = 0, startWidth2 = 0;
+    let startYH = 0, startHeightH = 0;
 
-    // Démarrer le drag
-    function startDrag1(e) {
-        e.preventDefault();
-        isDragging1 = true;
-        startX = e.clientX;
-        startWidth1 = document.querySelector('.ticket-col').getBoundingClientRect().width;
-        document.body.style.cursor = 'col-resize';
-        document.body.style.userSelect = 'none';
-        console.log('Drag 1 start:', startWidth1);
-    }
-    function startDrag2(e) {
-        e.preventDefault();
-        isDragging2 = true;
-        startX = e.clientX;
-        startWidth2 = document.querySelector('.mid-col').getBoundingClientRect().width;
-        document.body.style.cursor = 'col-resize';
-        document.body.style.userSelect = 'none';
-        console.log('Drag 2 start:', startWidth2);
+    // --- DÉMARRER LE GLISSEMENT ---
+    if(resizer1) {
+        resizer1.addEventListener('pointerdown', (e) => {
+            isDragging1 = true;
+            startX = e.clientX;
+            startWidth1 = document.querySelector('.ticket-col').getBoundingClientRect().width;
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        });
     }
 
-    resizer1.addEventListener('mousedown', startDrag1);
-    resizer2.addEventListener('mousedown', startDrag2);
-    resizer1.addEventListener('touchstart', startDrag1, { passive: false });
-    resizer2.addEventListener('touchstart', startDrag2, { passive: false });
+    if(resizer2) {
+        resizer2.addEventListener('pointerdown', (e) => {
+            isDragging2 = true;
+            startX = e.clientX;
+            startWidth2 = document.querySelector('.mid-col').getBoundingClientRect().width;
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        });
+    }
 
-    // Pendant le glissement
-    document.addEventListener('mousemove', (e) => {
+    if(resizerH) {
+        resizerH.addEventListener('pointerdown', (e) => {
+            isDraggingH = true;
+            startYH = e.clientY;
+            startHeightH = document.getElementById('numpad-box').getBoundingClientRect().height;
+            document.body.style.cursor = 'row-resize';
+            document.body.style.userSelect = 'none';
+        });
+    }
+
+    // --- PENDANT LE GLISSEMENT ---
+    document.addEventListener('pointermove', (e) => {
         if (isDragging1) {
             const dx = e.clientX - startX;
             const newWidth = Math.max(220, Math.min(window.innerWidth * 0.5, startWidth1 + dx));
-            layoutBody.style.setProperty('--ticket-w', newWidth + 'px');
+            layoutBody.style.setProperty('--ticket-w', `${newWidth}px`);
         }
         if (isDragging2) {
             const dx = e.clientX - startX;
             const newWidth = Math.max(280, Math.min(window.innerWidth * 0.6, startWidth2 + dx));
-            layoutBody.style.setProperty('--mid-w', newWidth + 'px');
+            layoutBody.style.setProperty('--mid-w', `${newWidth}px`);
+        }
+        if (isDraggingH) {
+            const dy = e.clientY - startYH;
+            // Si on descend, on réduit la hauteur du pavé (startHeightH - dy)
+            const newHeight = Math.max(150, Math.min(window.innerHeight * 0.6, startHeightH - dy));
+            layoutBody.style.setProperty('--numpad-h', `${newHeight}px`);
         }
     });
 
-    document.addEventListener('touchmove', (e) => {
-        if (isDragging1 || isDragging2) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            if (isDragging1) {
-                const dx = touch.clientX - startX;
-                const newWidth = Math.max(220, Math.min(window.innerWidth * 0.5, startWidth1 + dx));
-                layoutBody.style.setProperty('--ticket-w', newWidth + 'px');
-            }
-            if (isDragging2) {
-                const dx = touch.clientX - startX;
-                const newWidth = Math.max(280, Math.min(window.innerWidth * 0.6, startWidth2 + dx));
-                layoutBody.style.setProperty('--mid-w', newWidth + 'px');
-            }
-        }
-    }, { passive: false });
-
-    // Relâcher (sauvegarde)
-    function endDrag() {
-        if (isDragging1) {
-            localStorage.setItem('caisse_ticket_w', layoutBody.style.getPropertyValue('--ticket-w'));
-        }
-        if (isDragging2) {
-            localStorage.setItem('caisse_mid_w', layoutBody.style.getPropertyValue('--mid-w'));
-        }
+    // --- RELÂCHER (SAUVEGARDE) ---
+    document.addEventListener('pointerup', () => {
+        if (isDragging1) localStorage.setItem('caisse_ticket_w', layoutBody.style.getPropertyValue('--ticket-w'));
+        if (isDragging2) localStorage.setItem('caisse_mid_w', layoutBody.style.getPropertyValue('--mid-w'));
+        if (isDraggingH) localStorage.setItem('caisse_numpad_h', layoutBody.style.getPropertyValue('--numpad-h'));
+        
         isDragging1 = false;
         isDragging2 = false;
+        isDraggingH = false;
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
-    }
-
-    document.addEventListener('mouseup', endDrag);
-    document.addEventListener('touchend', endDrag);
-})();
-
-/* ================= INIT ================= */
-async function init() {
-    STORE.caissier = session.cashier || STORE.caissier;
-    $('info-caisse').textContent = STORE.caisse;
-    $('info-caissier').textContent = STORE.caissier;
-    tick();
-    buildFnGrid();
-    state.products = await API.getProduits();
-    renderAll();
+    });
 }
+
+/* ================= RACCOURCIS & HORLOGE ================= */
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'F2') { e.preventDefault(); els.scan.focus(); }
+    else if (e.key === 'F4') { e.preventDefault(); openCatalog(); }
+    else if (e.key === 'F6') { e.preventDefault(); openDiscount(); }
+    else if (e.key === 'F9') { e.preventDefault(); holdTicket(); }
+    else if (e.key === 'F12') { e.preventDefault(); openPayment(); }
+    else if (e.key === 'Escape') {
+        const modal = document.querySelector('.modal-overlay');
+        if (modal && modal._ctx) modal._ctx.close();
+        else if (currentCategory) closeFnProducts();
+    }
+});
+
+function updateClock() {
+    const now = new Date();
+    document.getElementById('datetime').textContent = now.toLocaleString('fr-FR', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ================= INITIALISATION ================= */
+async function init() {
+    state.products = await API.getProduits();
+    buildFnGrid();
+    initResizers();
+    renderAll();
+    
+    // Gestion caissier
+    const savedCashier = localStorage.getItem('pos_cashier');
+    if (savedCashier) {
+        session.cashier = savedCashier;
+        STORE.caissier = savedCashier;
+        $('info-caissier').textContent = savedCashier;
+    } else {
+        $('lock-screen').hidden = false;
+        $('lock-name').focus();
+    }
+}
+
+// Enregistrer le caissier lors de la connexion
+$('lock-open').addEventListener('click', () => {
+    localStorage.setItem('pos_cashier', $('lock-name').value.trim());
+});
+
 init();

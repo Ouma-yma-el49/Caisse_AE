@@ -75,7 +75,7 @@ button:disabled { cursor: not-allowed; }
 /* ================= CORPS (GRID) AVEC REDIMENSIONNEMENT ================= */
 .body {
     display: grid;
-    /* On utilise des variables CSS pour les largeurs dynamiques */
+    /* Variables CSS pour les largeurs/hauteurs dynamiques */
     grid-template-columns: var(--ticket-w, 340px) 12px var(--mid-w, 460px) 12px 1fr;
     grid-template-rows: auto 1fr;
     gap: 6px;
@@ -91,7 +91,7 @@ button:disabled { cursor: not-allowed; }
 .mid-col    { grid-column: 3; grid-row: 2; width: auto; min-width: 0; }
 .fn-col     { grid-column: 5; grid-row: 2; width: auto; min-width: 0; }
 
-/* POIGNÉES DE REDIMENSIONNEMENT */
+/* POIGNÉES DE REDIMENSIONNEMENT VERTICAL */
 .resizer {
     display: flex;
     align-items: center;
@@ -104,7 +104,6 @@ button:disabled { cursor: not-allowed; }
 #resizer-1 { grid-column: 2; grid-row: 1 / span 2; }
 #resizer-2 { grid-column: 4; grid-row: 2; }
 
-/* Le trait visuel */
 .resizer::after {
     content: '';
     width: 4px;
@@ -139,8 +138,8 @@ button:disabled { cursor: not-allowed; }
 .tf-discount { color: #d97706; }
 .tf-total { font-size: 24px; font-weight: 800; color: var(--text-main); margin: 6px 0 0; }
 
-/* MID-COL (panneau catégories + pavé) */
-.mid-col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+/* MID-COL (Panneau catégories + pavé) */
+.mid-col { display: flex; flex-direction: column; gap: 0; min-height: 0; }
 .products-panel { flex: 1; min-height: 140px; background: #fff; border: 3px solid #1e293b; border-radius: var(--radius); display: flex; flex-direction: column; padding: 10px; overflow: hidden; }
 .panel-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; overflow-y: auto; align-content: start; }
 .panel-grid .empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 30px; }
@@ -157,8 +156,32 @@ button:disabled { cursor: not-allowed; }
 .pt-stock.out { color: var(--red); font-weight: 700; }
 .pt-qty { position: absolute; top: 4px; right: 4px; background: var(--green); color: #fff; border-radius: 10px; min-width: 20px; padding: 0 6px; font-size: 12px; font-weight: 800; }
 
+/* POIGNÉE HORIZONTALE (Entre produits et pavé) */
+.resizer-h {
+    height: 12px;
+    margin: 4px 0;
+    cursor: row-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    touch-action: none;
+}
+.resizer-h::after {
+    content: '';
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    transition: background 0.2s, width 0.2s;
+}
+.resizer-h:hover::after, .resizer-h:active::after {
+    background: var(--blue);
+    width: 100%;
+}
+
 /* PAVÉ */
-.numpad-box { background: #fff; border: 3px solid #1e293b; border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden; height: 320px; flex-shrink: 0; }
+.numpad-box { background: #fff; border: 3px solid #1e293b; border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden; height: var(--numpad-h, 320px); flex-shrink: 0; }
 .numpad-display { background: #f1f5f9; padding: 6px 14px; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--border); }
 .numpad-display small { color: var(--text-muted); text-transform: uppercase; font-size: 12px; }
 .numpad-display span { font-size: 26px; font-weight: 800; }
@@ -317,8 +340,8 @@ button:disabled { cursor: not-allowed; }
         padding: 8px; 
     }
     .resizer::after { width: 3px; }
-    .mid-col { gap: 8px; }
-    .numpad-box { height: 260px; }
+    .resizer-h::after { height: 3px; }
+    .numpad-box { height: var(--numpad-h, 260px); }
     .numpad-grid { gap: 5px; padding: 6px; }
     .numpad-grid button { font-size: 20px; min-height: 46px; }
     .fn-grid { gap: 6px; }
@@ -335,8 +358,8 @@ button:disabled { cursor: not-allowed; }
 
 /* Tablette portrait */
 @media (max-width: 900px) {
-    /* On cache les poignées sur tablette portrait (pas pratique au doigt) */
-    .resizer { display: none; }
+    /* On cache les poignées sur tablette portrait et mobile */
+    .resizer, .resizer-h { display: none; }
     
     .body {
         grid-template-columns: 42% 1fr;
@@ -345,11 +368,11 @@ button:disabled { cursor: not-allowed; }
     }
     .infobar    { grid-column: 1 / span 2; grid-row: 1; }
     .ticket-col { grid-column: 1; grid-row: 2 / span 2; min-height: 0; }
-    .mid-col    { grid-column: 2; grid-row: 2; gap: 8px; }
+    .mid-col    { grid-column: 2; grid-row: 2; gap: 12px; }
     .fn-col     { grid-column: 2; grid-row: 3; min-height: 0; }
     
     .products-panel { min-height: 140px; }
-    .numpad-box { height: 240px; }
+    .numpad-box { height: 240px; } /* Hauteur fixe d'origine sur tablette */
     .top-info { font-size: 11px; }
     .brand { font-size: 22px; }
     #scan-input { font-size: 14px; }
@@ -360,7 +383,7 @@ button:disabled { cursor: not-allowed; }
 
 /* Téléphone */
 @media (max-width: 640px) {
-    .resizer { display: none; }
+    .resizer, .resizer-h { display: none; }
     html { height: auto; }
     body { height: auto; min-height: 100vh; overflow: auto; }
     .app  { height: auto; min-height: 100vh; }
@@ -384,9 +407,10 @@ button:disabled { cursor: not-allowed; }
         display: flex; flex-direction: column;
         height: auto; flex: none; min-height: 0;
         padding: 6px; gap: 8px;
-        grid-template-columns: none; /* Annule la grille */
+        grid-template-columns: none;
     }
     .ticket-col, .mid-col, .fn-col, .infobar { width: auto; grid-column: auto; grid-row: auto; }
+    .mid-col { gap: 12px; } /* On remet le gap puisqu'il n'y a plus de poignée */
     
     .ticket-col   { min-height: 240px; max-height: 42vh; }
     .ticket-head  { padding: 8px 12px; font-size: 12px; }
